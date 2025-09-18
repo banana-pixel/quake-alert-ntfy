@@ -36,6 +36,7 @@ import io.heckel.ntfy.R
 import io.heckel.ntfy.app.Application
 import io.heckel.ntfy.db.Repository
 import io.heckel.ntfy.db.Subscription
+import io.heckel.ntfy.db.User
 import io.heckel.ntfy.firebase.FirebaseMessenger
 import io.heckel.ntfy.msg.ApiService
 import io.heckel.ntfy.msg.DownloadManager
@@ -49,6 +50,7 @@ import io.heckel.ntfy.work.PollWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
@@ -88,6 +90,8 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
 
         // Action bar
         title = getString(R.string.main_action_bar_title)
+
+        ensureDefaultSubscriptionAndUser()
 
         // Floating action button ("+")
         fab = findViewById(R.id.fab)
@@ -733,6 +737,79 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
             return
         }
         adapter.notifyItemRangeChanged(0, adapter.currentList.size)
+    }
+
+    private fun ensureDefaultSubscriptionAndUser() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val baseUrl = appBaseUrl ?: return@launch
+            val topic = getString(R.string.default_subscription_topic)
+            val username = getString(R.string.default_user_username)
+            val password = getString(R.string.default_user_password)
+
+            ensureDefaultUser(baseUrl, username, password)
+            ensureDefaultSubscription(baseUrl, topic)
+        }
+    }
+
+    private suspend fun ensureDefaultUser(baseUrl: String, username: String, password: String) {
+        val existingUser = repository.getUser(baseUrl)
+        if (existingUser == null) {
+            Log.d(TAG, "Adding default credentials for $baseUrl")
+            repository.addUser(User(baseUrl, username, password))
+        } else if (existingUser.username != username || existingUser.password != password) {
+            Log.d(TAG, "Updating default credentials for $baseUrl")
+            repository.updateUser(existingUser.copy(username = username, password = password))
+        }
+    }
+
+    private suspend fun ensureDefaultSubscription(baseUrl: String, topic: String) {
+        val existingSubscription = repository.getSubscription(baseUrl, topic)
+        if (existingSubscription != null) {
+            return
+        }
+
+        val instant = !BuildConfig.FIREBASE_AVAILABLE || baseUrl != appBaseUrl
+        val subscription = Subscription(
+            id = randomSubscriptionId(),
+            baseUrl = baseUrl,
+            topic = topic,
+            instant = instant,
+            dedicatedChannels = false,
+            mutedUntil = 0,
+            minPriority = Repository.MIN_PRIORITY_USE_GLOBAL,
+            autoDelete = Repository.AUTO_DELETE_USE_GLOBAL,
+            insistent = Repository.INSISTENT_MAX_PRIORITY_USE_GLOBAL,
+            lastNotificationId = null,
+            icon = null,
+            upAppId = null,
+            upConnectorToken = null,
+            displayName = null,
+            totalCount = 0,
+            newCount = 0,
+            lastActive = System.currentTimeMillis() / 1000
+        )
+
+        Log.d(TAG, "Adding default subscription ${topicShortUrl(baseUrl, topic)}")
+        repository.addSubscription(subscription)
+
+        if (baseUrl == appBaseUrl) {
+            withContext(Dispatchers.Main) {
+                messenger.subscribe(topic)
+            }
+        }
+
+        try {
+            val user = repository.getUser(baseUrl)
+            val notifications = api.poll(subscription.id, baseUrl, topic, user)
+            notifications.forEach { notification ->
+                repository.addNotification(notification)
+                if (notification.icon != null) {
+                    DownloadManager.enqueue(this@MainActivity, notification.id, userAction = false, DownloadType.ICON)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Unable to fetch notifications for default subscription: ${e.message}", e)
+        }
     }
 
     companion object {
