@@ -229,7 +229,7 @@
                 android:layout_height="match_parent"
                 android:clickable="true"
                 android:focusable="true"
-                android:paddingTop="5dp"
+                android:paddingTop="16dp"
                 android:paddingBottom="5dp"
                 android:clipToPadding="false"
                 android:background="?android:attr/selectableItemBackground"
