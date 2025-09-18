@@ -26,6 +26,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -47,6 +49,9 @@ import io.heckel.ntfy.service.SubscriberServiceManager
 import io.heckel.ntfy.util.*
 import io.heckel.ntfy.work.DeleteWorker
 import io.heckel.ntfy.work.PollWorker
+import io.heckel.ntfy.ui.reports.QuakeReportsAdapter
+import io.heckel.ntfy.ui.reports.QuakeReportsService
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -69,6 +74,16 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     private lateinit var mainListContainer: SwipeRefreshLayout
     private lateinit var adapter: MainAdapter
     private lateinit var fab: FloatingActionButton
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var reportsRefresh: SwipeRefreshLayout
+    private lateinit var reportsList: RecyclerView
+    private lateinit var reportsAdapter: QuakeReportsAdapter
+    private lateinit var reportsProgress: View
+    private lateinit var reportsError: TextView
+    private lateinit var reportsEmpty: TextView
+    private var reportsLoaded = false
+    private var reportsLoading = false
+    private var reportsLastLoadedAt = 0L
 
     // Other stuff
     private var actionMode: ActionMode? = null
@@ -98,6 +113,8 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         fab.setOnClickListener {
             onSubscribeButtonClick()
         }
+
+        setupReportsDrawer()
 
         // Swipe to refresh
         mainListContainer = findViewById(R.id.main_subscriptions_list_container)
@@ -455,7 +472,22 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
                 startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.main_menu_docs_url))))
                 true
             }
+            R.id.main_menu_reports -> {
+                if (shouldAutoRefreshReports()) {
+                    loadReports()
+                }
+                drawerLayout.openDrawer(GravityCompat.END)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    override fun onBackPressed() {
+        if (this::drawerLayout.isInitialized && drawerLayout.isDrawerOpen(GravityCompat.END)) {
+            drawerLayout.closeDrawer(GravityCompat.END)
+        } else {
+            super.onBackPressed()
         }
     }
 
@@ -555,6 +587,103 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     private fun onSubscriptionItemLongClick(subscription: Subscription) {
         if (actionMode == null) {
             beginActionMode(subscription)
+        }
+    }
+
+    private fun setupReportsDrawer() {
+        drawerLayout = findViewById(R.id.main_drawer_layout)
+        reportsRefresh = findViewById(R.id.reports_refresh)
+        reportsList = findViewById(R.id.reports_list)
+        reportsProgress = findViewById(R.id.reports_progress)
+        reportsError = findViewById(R.id.reports_error)
+        reportsEmpty = findViewById(R.id.reports_empty)
+
+        reportsAdapter = QuakeReportsAdapter()
+        reportsList.adapter = reportsAdapter
+        reportsList.visibility = View.GONE
+
+        reportsRefresh.setColorSchemeResources(Colors.refreshProgressIndicator)
+        reportsRefresh.setOnRefreshListener { loadReports() }
+        reportsRefresh.isEnabled = true
+
+        reportsError.setOnClickListener { loadReports() }
+        reportsEmpty.setOnClickListener { loadReports() }
+
+        drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerOpened(drawerView: View) {
+                if (drawerView.id == R.id.reports_drawer && shouldAutoRefreshReports()) {
+                    loadReports()
+                }
+            }
+        })
+    }
+
+    private fun shouldAutoRefreshReports(): Boolean {
+        if (reportsLoading) {
+            return false
+        }
+        if (!reportsLoaded) {
+            return true
+        }
+        val elapsed = System.currentTimeMillis() - reportsLastLoadedAt
+        return elapsed >= REPORTS_AUTO_REFRESH_INTERVAL_MS
+    }
+
+    private fun loadReports() {
+        if (reportsLoading) {
+            return
+        }
+        reportsLoading = true
+        reportsError.visibility = View.GONE
+        reportsError.text = getString(R.string.reports_error_text)
+        reportsEmpty.visibility = View.GONE
+
+        if (!reportsLoaded) {
+            reportsProgress.visibility = View.VISIBLE
+            reportsRefresh.visibility = View.GONE
+        } else {
+            reportsRefresh.isRefreshing = true
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val reports = QuakeReportsService.fetchReports()
+                withContext(Dispatchers.Main) {
+                    val items = reports.toList()
+                    reportsAdapter.submitList(items)
+                    if (items.isNotEmpty()) {
+                        reportsList.post { reportsList.scrollToPosition(0) }
+                    }
+                    reportsLoaded = true
+                    reportsLastLoadedAt = System.currentTimeMillis()
+                    reportsProgress.visibility = View.GONE
+                    reportsRefresh.visibility = View.VISIBLE
+                    reportsRefresh.isRefreshing = false
+                    reportsEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                    reportsList.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+                }
+            } catch (e: Exception) {
+                if (e is CancellationException) {
+                    throw e
+                }
+                Log.e(TAG, "Failed to load quake reports: ${e.message}", e)
+                val reason = e.localizedMessage?.takeIf { it.isNotBlank() }
+                withContext(Dispatchers.Main) {
+                    reportsProgress.visibility = View.GONE
+                    reportsRefresh.visibility = View.VISIBLE
+                    reportsRefresh.isRefreshing = false
+                    reportsError.visibility = View.VISIBLE
+                    reportsError.text = reason?.let { getString(R.string.reports_error_with_reason, it) }
+                        ?: getString(R.string.reports_error_text)
+                    reportsList.visibility = if (reportsAdapter.itemCount > 0) View.VISIBLE else View.GONE
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    reportsLoading = false
+                    reportsRefresh.isRefreshing = false
+                    reportsProgress.visibility = View.GONE
+                }
+            }
         }
     }
 
@@ -830,5 +959,6 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         const val POLL_WORKER_INTERVAL_MINUTES = 60L
         const val DELETE_WORKER_INTERVAL_MINUTES = 8 * 60L
         const val SERVICE_START_WORKER_INTERVAL_MINUTES = 3 * 60L
+        private const val REPORTS_AUTO_REFRESH_INTERVAL_MS = 60_000L
     }
 }

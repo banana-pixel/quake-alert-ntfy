@@ -43,6 +43,7 @@
     <string name="main_menu_docs_title">Read the docs</string>
     <string name="main_menu_rate_title">Rate the app ⭐</string>
     <string name="main_menu_donate_title">Donate 💸</string>
+    <string name="main_menu_reports_title">Quake reports</string>
 
     <!-- Main activity: Action mode -->
     <string name="main_action_mode_menu_unsubscribe">Unsubscribe</string>
@@ -87,6 +88,13 @@
     <string name="main_banner_websocket_reconnect_button_remind_later">Ask later</string>
     <string name="main_banner_websocket_reconnect_button_dismiss">Dismiss</string>
     <string name="main_banner_websocket_reconnect_button_enable_now">Grant now</string>
+
+    <!-- Main activity: Quake reports drawer -->
+    <string name="reports_drawer_title">Quake reports</string>
+    <string name="reports_empty_text">No quake reports available. Pull to refresh.</string>
+    <string name="reports_error_text">Unable to load quake reports. Pull to refresh or tap to retry.</string>
+    <string name="reports_error_with_reason">Unable to load quake reports. Pull to refresh or tap to retry.
+%1$s</string>
 
     <!-- Add dialog -->
     <string name="add_dialog_title">Subscribe to topic</string>
