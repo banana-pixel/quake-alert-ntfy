@@ -5,6 +5,6 @@
         android:title="@string/main_bottom_nav_alerts" />
     <item
         android:id="@+id/navigation_reports"
-        android:icon="@drawable/ic_bolt_white_24dp"
+        android:icon="@drawable/ic_quake_report_white_24dp"
         android:title="@string/main_bottom_nav_reports" />
 </menu>
