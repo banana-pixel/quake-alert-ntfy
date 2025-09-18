@@ -18,7 +18,7 @@
 \n
 \n%2$s</string>
     <string name="refresh_message_error_one">Tidak dapat memuat ulang langganan: %1$s</string>
-    <string name="main_action_bar_title">Topik berlangganan</string>
+    <string name="main_action_bar_title">Peringatan Gempa</string>
     <string name="main_menu_notifications_enabled">Notifikasi menyala</string>
     <string name="main_menu_notifications_disabled_forever">Notifikasi dibisukan</string>
     <string name="main_menu_notifications_disabled_until">Notifikasi dibisukan sampai %1$s</string>
@@ -26,6 +26,7 @@
     <string name="main_menu_report_bug_title">Laporkan kutu</string>
     <string name="main_menu_docs_title">Baca dokumentasi</string>
     <string name="main_menu_rate_title">Beri nilai aplikasi ⭐</string>
+    <string name="main_bottom_nav_alerts">Peringatan Gempa</string>
     <string name="main_action_mode_menu_unsubscribe">Batalkan langganan</string>
     <string name="main_action_mode_delete_dialog_message">Batalkan langganan dari topik yang dipilih dan hapus semua notifikasi secara permanen\?</string>
     <string name="main_action_mode_delete_dialog_cancel">Batal</string>
