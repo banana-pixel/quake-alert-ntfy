@@ -5,8 +5,7 @@
                                                    android:layout_height="wrap_content"
                                                    android:background="?android:attr/selectableItemBackground"
                                                    android:orientation="horizontal" android:clickable="true"
-                                                   android:focusable="true" android:paddingEnd="18dp"
-                                                   android:paddingStart="18dp">
+                                                   android:focusable="true">
     <ImageView
             android:layout_width="35dp"
             android:layout_height="35dp" app:srcCompat="@drawable/ic_sms_gray_24dp"
