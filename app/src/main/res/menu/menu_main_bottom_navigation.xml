@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navigation_alerts"
+        android:icon="@drawable/ic_notifications_white_24dp"
+        android:title="@string/main_bottom_nav_alerts" />
+    <item
+        android:id="@+id/navigation_reports"
+        android:icon="@drawable/ic_bolt_white_24dp"
+        android:title="@string/main_bottom_nav_reports" />
+</menu>

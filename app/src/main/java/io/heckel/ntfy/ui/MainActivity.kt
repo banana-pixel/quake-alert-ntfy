@@ -1,8 +1,6 @@
 package io.heckel.ntfy.ui
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.app.AlarmManager
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
@@ -26,13 +24,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.work.*
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import io.heckel.ntfy.BuildConfig
 import io.heckel.ntfy.R
 import io.heckel.ntfy.app.Application
@@ -73,8 +69,9 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     private lateinit var mainList: RecyclerView
     private lateinit var mainListContainer: SwipeRefreshLayout
     private lateinit var adapter: MainAdapter
-    private lateinit var fab: FloatingActionButton
-    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var bottomNavigation: BottomNavigationView
+    private lateinit var alertContainer: View
+    private lateinit var reportsContainer: View
     private lateinit var reportsRefresh: SwipeRefreshLayout
     private lateinit var reportsList: RecyclerView
     private lateinit var reportsAdapter: QuakeReportsAdapter
@@ -108,13 +105,27 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
 
         ensureDefaultSubscriptionAndUser()
 
-        // Floating action button ("+")
-        fab = findViewById(R.id.fab)
-        fab.setOnClickListener {
-            onSubscribeButtonClick()
-        }
+        alertContainer = findViewById(R.id.main_alert_container)
+        reportsContainer = findViewById(R.id.reports_container)
 
-        setupReportsDrawer()
+        setupReportsSection()
+
+        bottomNavigation = findViewById(R.id.main_bottom_navigation)
+        bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_alerts -> {
+                    showAlerts()
+                    true
+                }
+                R.id.navigation_reports -> {
+                    showReports()
+                    true
+                }
+                else -> false
+            }
+        }
+        bottomNavigation.selectedItemId = R.id.navigation_alerts
+        showAlerts()
 
         // Swipe to refresh
         mainListContainer = findViewById(R.id.main_subscriptions_list_container)
@@ -473,10 +484,7 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
                 true
             }
             R.id.main_menu_reports -> {
-                if (shouldAutoRefreshReports()) {
-                    loadReports()
-                }
-                drawerLayout.openDrawer(GravityCompat.END)
+                bottomNavigation.selectedItemId = R.id.navigation_reports
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -484,8 +492,8 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     }
 
     override fun onBackPressed() {
-        if (this::drawerLayout.isInitialized && drawerLayout.isDrawerOpen(GravityCompat.END)) {
-            drawerLayout.closeDrawer(GravityCompat.END)
+        if (this::reportsContainer.isInitialized && reportsContainer.visibility == View.VISIBLE) {
+            bottomNavigation.selectedItemId = R.id.navigation_alerts
         } else {
             super.onBackPressed()
         }
@@ -590,8 +598,7 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         }
     }
 
-    private fun setupReportsDrawer() {
-        drawerLayout = findViewById(R.id.main_drawer_layout)
+    private fun setupReportsSection() {
         reportsRefresh = findViewById(R.id.reports_refresh)
         reportsList = findViewById(R.id.reports_list)
         reportsProgress = findViewById(R.id.reports_progress)
@@ -608,14 +615,21 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
 
         reportsError.setOnClickListener { loadReports() }
         reportsEmpty.setOnClickListener { loadReports() }
+    }
 
-        drawerLayout.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
-            override fun onDrawerOpened(drawerView: View) {
-                if (drawerView.id == R.id.reports_drawer && shouldAutoRefreshReports()) {
-                    loadReports()
-                }
-            }
-        })
+    private fun showAlerts() {
+        alertContainer.visibility = View.VISIBLE
+        reportsContainer.visibility = View.GONE
+        title = getString(R.string.main_action_bar_title)
+    }
+
+    private fun showReports() {
+        alertContainer.visibility = View.GONE
+        reportsContainer.visibility = View.VISIBLE
+        title = getString(R.string.reports_drawer_title)
+        if (shouldAutoRefreshReports()) {
+            loadReports()
+        }
     }
 
     private fun shouldAutoRefreshReports(): Boolean {
@@ -814,18 +828,6 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         actionMode = startActionMode(this)
         adapter.toggleSelection(subscription.id)
 
-        // Fade out FAB
-        fab.alpha = 1f
-        fab
-            .animate()
-            .alpha(0f)
-            .setDuration(ANIMATION_DURATION)
-            .setListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    fab.visibility = View.GONE
-                }
-            })
-
         // Fade status bar color
         val fromColor = ContextCompat.getColor(this, Colors.statusBarNormal(this))
         val toColor = ContextCompat.getColor(this, Colors.statusBarActionMode(this))
@@ -841,19 +843,6 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         actionMode = null
         adapter.selected.clear()
         redrawList()
-
-        // Fade in FAB
-        fab.alpha = 0f
-        fab.visibility = View.VISIBLE
-        fab
-            .animate()
-            .alpha(1f)
-            .setDuration(ANIMATION_DURATION)
-            .setListener(object : AnimatorListenerAdapter() {
-                override fun onAnimationEnd(animation: Animator) {
-                    fab.visibility = View.VISIBLE // Required to replace the old listener
-                }
-            })
 
         // Fade status bar color
         val fromColor = ContextCompat.getColor(this, Colors.statusBarActionMode(this))
