@@ -34,7 +34,7 @@
     <string name="refresh_message_error_one">Could not refresh subscription: %1$s</string>
 
     <!-- Main activity: Action bar -->
-    <string name="main_action_bar_title">Daftar Gempa</string>
+    <string name="main_action_bar_title">Peringatan Gempa</string>
     <string name="main_menu_notifications_enabled">Notifications on</string>
     <string name="main_menu_notifications_disabled_forever">Notifications muted</string>
     <string name="main_menu_notifications_disabled_until">Notifications muted until %1$s</string>
@@ -44,7 +44,7 @@
     <string name="main_menu_rate_title">Rate the app ⭐</string>
     <string name="main_menu_donate_title">Donate 💸</string>
     <string name="main_menu_reports_title">Laporan Gempa</string>
-    <string name="main_bottom_nav_alerts">Earthquake Alert</string>
+    <string name="main_bottom_nav_alerts">Peringatan Gempa</string>
     <string name="main_bottom_nav_reports">Laporan Gempa</string>
 
     <!-- Main activity: Action mode -->
