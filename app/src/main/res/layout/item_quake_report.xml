@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginBottom="12dp"
+    app:cardUseCompatPadding="true"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/report_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/report_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="?attr/colorOnSurface"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/report_details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+            android:textColor="?attr/colorOnSurface"
+            android:lineSpacingExtra="4dp" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
