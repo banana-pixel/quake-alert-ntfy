@@ -14,12 +14,12 @@ android {
     compileSdkVersion 35
 
     defaultConfig {
-        applicationId "io.heckel.ntfy"
+        applicationId "id.my.bananapixel.quakealert"
         minSdkVersion 21
         targetSdkVersion 35
 
         versionCode 39
-        versionName "1.17.6"
+        versionName "1.17.6 - quakealert 1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -43,14 +43,16 @@ android {
             minifyEnabled false
             shrinkResources false
             debuggable true
-            applicationIdSuffix ".debug"
+            // applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
         }
     }
 
     flavorDimensions "store"
-    productFlavors {
+    productFlavors {s
         play {
+            applicationId "id.my.bananapixel.quakealert"
+
             buildConfigField 'boolean', 'FIREBASE_AVAILABLE', 'true'
             buildConfigField 'boolean', 'RATE_APP_AVAILABLE', 'true'
             buildConfigField 'boolean', 'INSTALL_PACKAGES_AVAILABLE', 'false'
