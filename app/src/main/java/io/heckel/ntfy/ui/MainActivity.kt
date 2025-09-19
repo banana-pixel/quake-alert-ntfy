@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
 import android.text.method.LinkMovementMethod
-import android.view.ActionMode
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -56,7 +55,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
-class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.SubscribeListener, NotificationFragment.NotificationSettingsListener {
+class MainActivity : AppCompatActivity(), AddFragment.SubscribeListener, NotificationFragment.NotificationSettingsListener {
     private val viewModel by viewModels<SubscriptionsViewModel> {
         SubscriptionsViewModelFactory((application as Application).repository)
     }
@@ -83,7 +82,6 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     private var reportsLastLoadedAt = 0L
 
     // Other stuff
-    private var actionMode: ActionMode? = null
     private var workManager: WorkManager? = null // Context-dependent
     private var dispatcher: NotificationDispatcher? = null // Context-dependent
     private var appBaseUrl: String? = null // Context-dependent
@@ -135,10 +133,9 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         // Update main list based on viewModel (& its datasource/livedata)
         val noEntries: View = findViewById(R.id.main_no_subscriptions)
         val onSubscriptionClick = { s: Subscription -> onSubscriptionItemClick(s) }
-        val onSubscriptionLongClick = { s: Subscription -> onSubscriptionItemLongClick(s) }
 
         mainList = findViewById(R.id.main_subscriptions_list)
-        adapter = MainAdapter(repository, onSubscriptionClick, onSubscriptionLongClick)
+        adapter = MainAdapter(repository, onSubscriptionClick)
         mainList.adapter = adapter
 
         viewModel.list().observe(this) {
@@ -579,18 +576,10 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
     }
 
     private fun onSubscriptionItemClick(subscription: Subscription) {
-        if (actionMode != null) {
-            handleActionModeClick(subscription)
-        } else if (subscription.upAppId != null) { // UnifiedPush
+        if (subscription.upAppId != null) { // UnifiedPush
             startDetailSettingsView(subscription)
         } else {
             startDetailView(subscription)
-        }
-    }
-
-    private fun onSubscriptionItemLongClick(subscription: Subscription) {
-        if (actionMode == null) {
-            beginActionMode(subscription)
         }
     }
 
@@ -761,90 +750,6 @@ class MainActivity : AppCompatActivity(), ActionMode.Callback, AddFragment.Subsc
         startActivity(intent)
     }
 
-
-    private fun handleActionModeClick(subscription: Subscription) {
-        adapter.toggleSelection(subscription.id)
-        if (adapter.selected.size == 0) {
-            finishActionMode()
-        } else {
-            actionMode!!.title = adapter.selected.size.toString()
-        }
-    }
-
-    override fun onCreateActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        this.actionMode = mode
-        if (mode != null) {
-            mode.menuInflater.inflate(R.menu.menu_main_action_mode, menu)
-            mode.title = "1" // One item selected
-        }
-        return true
-    }
-
-    override fun onPrepareActionMode(mode: ActionMode?, menu: Menu?): Boolean {
-        return false
-    }
-
-    override fun onActionItemClicked(mode: ActionMode?, item: MenuItem?): Boolean {
-        return when (item?.itemId) {
-            R.id.main_action_mode_delete -> {
-                onMultiDeleteClick()
-                true
-            }
-            else -> false
-        }
-    }
-
-    private fun onMultiDeleteClick() {
-        Log.d(DetailActivity.TAG, "Showing multi-delete dialog for selected items")
-
-        val builder = AlertDialog.Builder(this)
-        val dialog = builder
-            .setMessage(R.string.main_action_mode_delete_dialog_message)
-            .setPositiveButton(R.string.main_action_mode_delete_dialog_permanently_delete) { _, _ ->
-                adapter.selected.map { subscriptionId -> viewModel.remove(this, subscriptionId) }
-                finishActionMode()
-            }
-            .setNegativeButton(R.string.main_action_mode_delete_dialog_cancel) { _, _ ->
-                finishActionMode()
-            }
-            .create()
-        dialog.setOnShowListener {
-            dialog
-                .getButton(AlertDialog.BUTTON_POSITIVE)
-                .dangerButton(this)
-        }
-        dialog.show()
-    }
-
-    override fun onDestroyActionMode(mode: ActionMode?) {
-        endActionModeAndRedraw()
-    }
-
-    private fun beginActionMode(subscription: Subscription) {
-        actionMode = startActionMode(this)
-        adapter.toggleSelection(subscription.id)
-
-        // Fade status bar color
-        val fromColor = ContextCompat.getColor(this, Colors.statusBarNormal(this))
-        val toColor = ContextCompat.getColor(this, Colors.statusBarActionMode(this))
-        fadeStatusBarColor(window, fromColor, toColor)
-    }
-
-    private fun finishActionMode() {
-        actionMode!!.finish()
-        endActionModeAndRedraw()
-    }
-
-    private fun endActionModeAndRedraw() {
-        actionMode = null
-        adapter.selected.clear()
-        redrawList()
-
-        // Fade status bar color
-        val fromColor = ContextCompat.getColor(this, Colors.statusBarActionMode(this))
-        val toColor = ContextCompat.getColor(this, Colors.statusBarNormal(this))
-        fadeStatusBarColor(window, fromColor, toColor)
-    }
 
     private fun redrawList() {
         if (!this::mainList.isInitialized) {

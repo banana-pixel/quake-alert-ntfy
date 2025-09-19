@@ -43,9 +43,9 @@
     <string name="main_menu_docs_title">Read the docs</string>
     <string name="main_menu_rate_title">Rate the app ⭐</string>
     <string name="main_menu_donate_title">Donate 💸</string>
-    <string name="main_menu_reports_title">Laporan Gempa</string>
+    <string name="main_menu_reports_title">Laporan Riwayat Gempa</string>
     <string name="main_bottom_nav_alerts">Peringatan Gempa</string>
-    <string name="main_bottom_nav_reports">Laporan Gempa</string>
+    <string name="main_bottom_nav_reports">Laporan Riwayat Gempa</string>
 
     <!-- Main activity: Action mode -->
     <string name="main_action_mode_menu_unsubscribe">Unsubscribe</string>
@@ -92,7 +92,7 @@
     <string name="main_banner_websocket_reconnect_button_enable_now">Grant now</string>
 
     <!-- Main activity: Quake reports drawer -->
-    <string name="reports_drawer_title">Laporan Gempa</string>
+    <string name="reports_drawer_title">Laporan Riwayat Gempa</string>
     <string name="reports_empty_text">No quake reports available. Pull to refresh.</string>
     <string name="reports_error_text">Unable to load quake reports. Pull to refresh or tap to retry.</string>
     <string name="reports_error_with_reason">Unable to load quake reports. Pull to refresh or tap to retry.
