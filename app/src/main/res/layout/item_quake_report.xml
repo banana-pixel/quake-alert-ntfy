@@ -6,8 +6,11 @@
     android:layout_marginStart="16dp"
     android:layout_marginEnd="16dp"
     android:layout_marginBottom="12dp"
-    app:cardUseCompatPadding="true"
-    app:strokeWidth="0dp">
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="false"
+    app:shapeAppearance="?shapeAppearanceLargeComponent"
+    app:strokeColor="@color/gray_500"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,19 +32,32 @@
             android:id="@+id/report_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="6dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="?attr/colorOnSurface"
+            android:alpha="0.8"
             android:visibility="gone" />
+
+        <com.google.android.material.divider.MaterialDivider
+            android:id="@+id/report_divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:visibility="gone"
+            app:dividerColor="@color/gray_500"
+            app:dividerInsetStart="0dp"
+            app:dividerInsetEnd="0dp" />
 
         <TextView
             android:id="@+id/report_details"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
+            android:lineSpacingExtra="6dp"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="?attr/colorOnSurface"
-            android:lineSpacingExtra="4dp" />
+            android:textColor="?attr/colorOnSurface" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
