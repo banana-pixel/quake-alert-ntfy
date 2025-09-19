@@ -13,5 +13,7 @@
     <color name="teal_dark">#2a6e60</color> <!-- Action bar background in action mode (light mode) -->
     <color name="red_light">#fe4d2e</color> <!-- Danger text (dark mode) -->
     <color name="red_dark">#c30000</color> <!-- Danger text (light mode) -->
+
+    <color name="report_id_background">#E0F2F1</color>
 </resources>
 

@@ -118,14 +118,16 @@ class QuakeReportsAdapter : ListAdapter<QuakeReport, QuakeReportsAdapter.ViewHol
         val idText = idValue?.takeIf { it.isNotBlank() }
         if (idText != null) {
             val labelText = idLabel?.takeIf { it.isNotBlank() } ?: defaultIdLabel
-            holder.reportId.text = context.getString(R.string.report_id_template, labelText, idText)
-            holder.reportId.isVisible = true
+            holder.reportIdLabel.text = labelText
+            holder.reportIdValue.text = idText
+            holder.reportIdContainer.isVisible = true
         } else {
-            holder.reportId.text = ""
-            holder.reportId.isVisible = false
+            holder.reportIdLabel.text = ""
+            holder.reportIdValue.text = ""
+            holder.reportIdContainer.isVisible = false
         }
 
-        holder.divider.isVisible = holder.details.isVisible || holder.reportId.isVisible
+        holder.divider.isVisible = holder.details.isVisible
     }
 
     override fun getItemId(position: Int): Long {
@@ -140,7 +142,9 @@ class QuakeReportsAdapter : ListAdapter<QuakeReport, QuakeReportsAdapter.ViewHol
         val intensityValue: TextView = view.findViewById(R.id.report_intensity_value)
         val divider: MaterialDivider = view.findViewById(R.id.report_divider)
         val details: TextView = view.findViewById(R.id.report_details)
-        val reportId: TextView = view.findViewById(R.id.report_id)
+        val reportIdContainer: View = view.findViewById(R.id.report_id_container)
+        val reportIdLabel: TextView = view.findViewById(R.id.report_id_label)
+        val reportIdValue: TextView = view.findViewById(R.id.report_id_value)
     }
 
     private object DiffCallback : DiffUtil.ItemCallback<QuakeReport>() {
@@ -156,7 +160,6 @@ class QuakeReportsAdapter : ListAdapter<QuakeReport, QuakeReportsAdapter.ViewHol
     companion object {
         private val INTENSITY_KEYWORDS = listOf("intens", "magnit", "skala")
         private val DURATION_KEYWORDS = listOf("durasi", "duration", "lama")
-        private val DURATION_NUMBER_REGEX = Regex("^[0-9]+([.,][0-9]+)?$")
 
         private fun isIntensityLabel(label: String): Boolean {
             return INTENSITY_KEYWORDS.any { keyword -> label.contains(keyword) }
@@ -189,7 +192,14 @@ class QuakeReportsAdapter : ListAdapter<QuakeReport, QuakeReportsAdapter.ViewHol
         }
 
         private fun needsDurationUnit(value: String): Boolean {
-            return DURATION_NUMBER_REGEX.matches(value.trim())
+            val trimmed = value.trim()
+            if (trimmed.isEmpty()) {
+                return false
+            }
+            if (trimmed.any { it.isLetter() }) {
+                return false
+            }
+            return true
         }
     }
 }
