@@ -99,7 +99,6 @@
 %1$s</string>
     <string name="report_intensity_default_label">Intensitas</string>
     <string name="report_id_default_label">ID</string>
-    <string name="report_id_template">%1$s: %2$s</string>
     <string name="report_duration_seconds">%1$s detik</string>
 
     <!-- Add dialog -->
