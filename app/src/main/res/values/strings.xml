@@ -97,6 +97,10 @@
     <string name="reports_error_text">Unable to load quake reports. Pull to refresh or tap to retry.</string>
     <string name="reports_error_with_reason">Unable to load quake reports. Pull to refresh or tap to retry.
 %1$s</string>
+    <string name="report_intensity_default_label">Intensitas</string>
+    <string name="report_id_default_label">ID</string>
+    <string name="report_id_template">%1$s: %2$s</string>
+    <string name="report_duration_seconds">%1$s detik</string>
 
     <!-- Add dialog -->
     <string name="add_dialog_title">Subscribe to topic</string>
