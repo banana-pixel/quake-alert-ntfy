@@ -33,8 +33,6 @@
     </style>
 
     <style name="Widget.QuakeAlert.BottomNavigation.ActiveIndicator" parent="">
-        <item name="android:width">wrap_content</item>
-        <item name="android:height">wrap_content</item>
         <item name="android:paddingStart">16dp</item>
         <item name="android:paddingEnd">16dp</item>
         <item name="android:paddingTop">8dp</item>
